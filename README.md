@@ -8,3 +8,5 @@ initial=[s]	           // s ∈ states<br/>
 accepting=[s1,s2,...]	   // s1, s2 ∈ states<br/>
 trans=[s1>a>s2,...]	   // s1,s2,...∈ states; a ∈ alpha<br/>
 <pre/>
+# Validation result
+# Errors:
