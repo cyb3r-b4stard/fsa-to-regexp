@@ -10,5 +10,6 @@ trans=[s1>a>s2,...]	   // s1,s2,...∈ states; a ∈ alpha<br/>
 <pre/>
 
 # Validation result
-
+Sdasdadad
 # Errors:
+adadad
