@@ -1,4 +1,4 @@
-/* 
+/**
  * @main
  * 
  * @brief This file converts given FSA to Regular Expression.
@@ -17,7 +17,7 @@
 using namespace std;
 
 struct triple {
-    /* first - state 'from', second - state 'to', third - transition*/
+    /* first - state 'from', second - state 'to', third - transition */
     string first, second, third;
     triple(string _first, string _second, string _third) : 
             first(_first), second(_second), third(_third) {}
@@ -66,16 +66,12 @@ int main() {
 
     try {
         /* Check for excess lines in input file */
-        if (getline(input, buffer)) {
-            output << "Error:\nE0: Input file is malformed";
-            throw logic_error("E0");
-        }
+        if (getline(input, buffer)) throw logic_error("E0");
 
         /* Check connectivity of FSA */
         try {
             dfs(states, trans);
         } catch (logic_error) {
-            output << "Error:\nE2: Some states are disjoint";
             throw logic_error("E2");
         }
 
@@ -86,7 +82,6 @@ int main() {
             for (size_t j = i + 1; j < trans.size(); ++j) {
                 if (trans[i].first == trans[j].first
                         && trans[i].third == trans[j].third) {
-                    output << "Error:\nE5: FSA is nondeterministic";
                     throw logic_error("E5");
                 }
             }
@@ -96,50 +91,27 @@ int main() {
                 if (trans[i].third == alpha[j]) flag = true;
             }
 
-            if (!flag) {
-                output << "Error:\nE3: A transition " 
-                    << trans[i].third 
-                    << " is not represented in the alphabet";
-                throw logic_error("E3");
-            }
+            if (!flag) throw logic_error("E3" + trans[i].third);
         }
 
         /* Check that every state from transition table is present in set of states */
         for (size_t i = 0; i < trans.size(); ++i) {
             if (!belongs(states, trans[i].first)) {
-                output << "Error:\nE1: A state "
-                    << trans[i].first
-                    << " is not in set of states";
-                throw logic_error("E1");
+                throw logic_error("E1" + trans[i].first);
             } else if (!belongs(states, trans[i].second)) {
-                output << "Error:\nE1: A state "
-                    << trans[i].second
-                    << " is not in set of states";
-                throw logic_error("E1");
+                throw logic_error("E1" + trans[i].second);
             }
         }
 
         /* Check that every state from accepting set is present in set of states*/
         for (size_t i = 0; i < accepting.size(); ++i) {
-            if (!belongs(states, accepting[i])) {
-                output << "Error:\nE1: A state "
-                    << accepting[i]
-                    << " is not in set of states";
-                throw logic_error("E1");
-            }
+            if (!belongs(states, accepting[i])) throw logic_error("E1" + accepting[i]);
         }
 
         /* Check that initial state is defined*/
         if (initial.empty()) {
-            output << "Error:\nE4: Initial state is not defined";
-        } else {
-            if (!belongs(states, initial[0])) {
-                output << "Error:\nE1: A state " 
-                    << initial[0] 
-                    << " is not in set of states";
-                throw logic_error("E1");
-            }
-        }
+            throw logic_error("E4");
+        } else if (!belongs(states, initial[0])) throw logic_error("E1" + initial[0]);
 
 
         /* Set up initial values of RegExp for k = -1 */
@@ -202,7 +174,31 @@ int main() {
         if (answer.empty()) answer = "{}";
 
         output << answer;
-    } catch (logic_error) {}
+    } catch (const logic_error& error) {
+        string exception_message = error.what(), error_code = exception_message.substr(0, 2), argument;
+        output << "Error:\n";
+        
+        if (error_code == "E0") {
+            output << "E0: Input file is malformed";
+        }
+        if (error_code == "E1") {
+            argument = exception_message.substr(2);
+            output << "E1: A state " << argument << " is not in set of states";
+        }
+        if (error_code == "E2") {
+            output << "E2: Some states are disjoint";
+        } 
+        if (error_code == "E3") {
+            argument = exception_message.substr(2);
+            output << "E3: A transition " << argument << " is not represented in the alphabet";  
+        }
+        if (error_code == "E4") {
+            output << "E4: Initial state is not defined";
+        }
+        if (error_code == "E5") {
+            output << "E5: FSA is nondeterministic";
+        }
+    }
 
     output.close();
     input.close();
@@ -210,12 +206,12 @@ int main() {
     return 0;
 }
 
-/* 
- * Splits string into set of words
+/**
+ * @brief Splits string into set of words
  *
- * @args str - input string
+ * @param str - input string
  * 
- * @return set of words
+ * @returns set of words
  */
 vector<string> preprocess(string str) {
     vector<string> processed;
@@ -239,12 +235,12 @@ vector<string> preprocess(string str) {
     return processed;
 }
 
-/* 
- * Splits string into set of transitions
+/** 
+ * @brief Splits string into set of transitions
  *
- * @args str - input string
+ * @param str - input string
  * 
- * @return set of transitions
+ * @returns set of transitions
  */
 vector<triple> preprocessTransitions(string str) {
     vector<string> trans_split = preprocess(str);
@@ -276,12 +272,13 @@ vector<triple> preprocessTransitions(string str) {
     return processed;
 }
 
-/* 
- * Performs Depth First Search
+/** 
+ * @brief Performs Depth First Search
  *
- * @args states - reference to set of states
- *       trans  - reference to set of transitions
+ * @param states - reference to set of states
+ * @param trans  - reference to set of transitions
  * 
+ * @throws std::logic_error Thrown if FSA is not a connected graph
  */
 void dfs(vector<string>& states, vector<triple>& trans) {
     vector<bool> visited (states.size(), false); 
@@ -291,17 +288,20 @@ void dfs(vector<string>& states, vector<triple>& trans) {
         break;
     }
     for (size_t i = 0; i < states.size(); ++i) {
-        if (!visited[i]) throw logic_error("E2");
+        if (!visited[i]) throw std::logic_error("E2");
     }
 }
 
-/*
- * Helper function for DFS
+/**
+ * @brief Helper function for DFS
+ * 
+ * @relatesalso dfs
  *
- * @args visited - reference to set of boolean value
- *       state   - current state
- *       states  - reference to set of states
- *       trans   - reference to set of transitions
+ * @param visited - reference to set of boolean value
+ * @param state   - current state
+ * @param states  - reference to set of states
+ * @param trans   - reference to set of transitions
+ * 
  */
 void dfsVisit(vector<bool>& visited, string state, vector<string>& states, vector<triple>& trans) {
     for (size_t i = 0; i < trans.size(); ++i) {
@@ -316,13 +316,13 @@ void dfsVisit(vector<bool>& visited, string state, vector<string>& states, vecto
     }
 }
 
-/*
- * Determines whether given element belongs to set
+/**
+ * @brief Determines whether given element belongs to set
  *
- * @args element - given element
- *       set     - reference to some set
+ * @param set     - reference to some set
+ * @param element - given element
  * 
- * @return true, if elements belongs to set, false otherwise
+ * @returns true, if elements belongs to set, false otherwise
  */
 bool belongs(vector<string>& set, string element) {
     for (size_t i = 0; i < set.size(); ++i) {
