@@ -25,9 +25,8 @@ struct triple {
 
 struct tensor {
     vector<vector<vector<string>>> _tensor;
-    tensor(size_t size) {
-        _tensor = vector<vector<vector<string>>> (size, vector<vector<string>> (size, vector<string> (size, "")));
-    }
+    tensor(size_t size) :
+        _tensor(vector<vector<vector<string>>> (size, vector<vector<string>> (size, vector<string> (size, "")))) {}
 };
 
 vector<string> preprocess            (string);
