@@ -287,7 +287,7 @@ void dfs(vector<string>& states, vector<triple>& trans) {
         break;
     }
     for (size_t i = 0; i < states.size(); ++i) {
-        if (!visited[i]) throw std::logic_error("E2");
+        if (!visited[i]) throw logic_error("E2");
     }
 }
 
