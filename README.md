@@ -1,5 +1,4 @@
 # FSA-to-RegExp
-Assignment for Theoretical Computer Science subject at Innopolis University, 2nd semester.
 
 ## Description
 
